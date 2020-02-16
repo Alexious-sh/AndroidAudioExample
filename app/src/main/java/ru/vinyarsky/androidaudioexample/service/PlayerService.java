@@ -77,13 +77,13 @@ final public class PlayerService extends Service {
 
     private MediaSessionCompat mediaSession;
 
-    private AudioManager audioManager;
+    /*private AudioManager audioManager;
     private AudioFocusRequest audioFocusRequest;
     private boolean audioFocusRequested = false;
 
     private SimpleExoPlayer exoPlayer;
     private ExtractorsFactory extractorsFactory;
-    private DataSource.Factory dataSourceFactory;
+    private DataSource.Factory dataSourceFactory;*/
 
     private final MusicRepository musicRepository = new MusicRepository();
 
@@ -96,7 +96,7 @@ final public class PlayerService extends Service {
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.createNotificationChannel(notificationChannel);
 
-            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+            /*AudioAttributes audioAttributes = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build();
@@ -105,10 +105,10 @@ final public class PlayerService extends Service {
                     .setAcceptsDelayedFocusGain(false)
                     .setWillPauseWhenDucked(true)
                     .setAudioAttributes(audioAttributes)
-                    .build();
+                    .build();*/
         }
 
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        //audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         mediaSession = new MediaSessionCompat(this, "PlayerService");
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
@@ -122,12 +122,12 @@ final public class PlayerService extends Service {
         Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON, null, appContext, MediaButtonReceiver.class);
         mediaSession.setMediaButtonReceiver(PendingIntent.getBroadcast(appContext, 0, mediaButtonIntent, 0));
 
-        exoPlayer = ExoPlayerFactory.newSimpleInstance(this, new DefaultRenderersFactory(this), new DefaultTrackSelector(), new DefaultLoadControl());
+        /*exoPlayer = ExoPlayerFactory.newSimpleInstance(this, new DefaultRenderersFactory(this), new DefaultTrackSelector(), new DefaultLoadControl());
         exoPlayer.addListener(exoPlayerListener);
         DataSource.Factory httpDataSourceFactory = new OkHttpDataSourceFactory(new OkHttpClient(), Util.getUserAgent(this, getString(R.string.app_name)));
         Cache cache = new SimpleCache(new File(this.getCacheDir().getAbsolutePath() + "/exoplayer"), new LeastRecentlyUsedCacheEvictor(1024 * 1024 * 100)); // 100 Mb max
         this.dataSourceFactory = new CacheDataSourceFactory(cache, httpDataSourceFactory, CacheDataSource.FLAG_BLOCK_ON_CACHE | CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
-        this.extractorsFactory = new DefaultExtractorsFactory();
+        this.extractorsFactory = new DefaultExtractorsFactory();*/
     }
 
     @Override
@@ -140,17 +140,17 @@ final public class PlayerService extends Service {
     public void onDestroy() {
         super.onDestroy();
         mediaSession.release();
-        exoPlayer.release();
+        //exoPlayer.release();
     }
 
     private MediaSessionCompat.Callback mediaSessionCallback = new MediaSessionCompat.Callback() {
 
-        private Uri currentUri;
+        //private Uri currentUri;
         int currentState = PlaybackStateCompat.STATE_STOPPED;
 
         @Override
         public void onPlay() {
-            if (!exoPlayer.getPlayWhenReady()) {
+            //if (!exoPlayer.getPlayWhenReady()) {
                 startService(new Intent(getApplicationContext(), PlayerService.class));
 
                 MusicRepository.Track track = musicRepository.getCurrent();
@@ -158,7 +158,7 @@ final public class PlayerService extends Service {
 
                 prepareToPlay(track.getUri());
 
-                if (!audioFocusRequested) {
+                /*if (!audioFocusRequested) {
                     audioFocusRequested = true;
 
                     int audioFocusResult;
@@ -169,14 +169,14 @@ final public class PlayerService extends Service {
                     }
                     if (audioFocusResult != AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
                         return;
-                }
+                }*/
 
                 mediaSession.setActive(true); // Сразу после получения фокуса
 
-                registerReceiver(becomingNoisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+                /*registerReceiver(becomingNoisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
 
-                exoPlayer.setPlayWhenReady(true);
-            }
+                exoPlayer.setPlayWhenReady(true);*/
+            //}
 
             mediaSession.setPlaybackState(stateBuilder.setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1).build());
             currentState = PlaybackStateCompat.STATE_PLAYING;
@@ -186,10 +186,10 @@ final public class PlayerService extends Service {
 
         @Override
         public void onPause() {
-            if (exoPlayer.getPlayWhenReady()) {
+            /*if (exoPlayer.getPlayWhenReady()) {
                 exoPlayer.setPlayWhenReady(false);
                 unregisterReceiver(becomingNoisyReceiver);
-            }
+            }*/
 
             mediaSession.setPlaybackState(stateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1).build());
             currentState = PlaybackStateCompat.STATE_PAUSED;
@@ -199,12 +199,12 @@ final public class PlayerService extends Service {
 
         @Override
         public void onStop() {
-            if (exoPlayer.getPlayWhenReady()) {
+            /*if (exoPlayer.getPlayWhenReady()) {
                 exoPlayer.setPlayWhenReady(false);
                 unregisterReceiver(becomingNoisyReceiver);
-            }
+            }*/
 
-            if (audioFocusRequested) {
+            /*if (audioFocusRequested) {
                 audioFocusRequested = false;
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -212,7 +212,7 @@ final public class PlayerService extends Service {
                 } else {
                     audioManager.abandonAudioFocus(audioFocusChangeListener);
                 }
-            }
+            }*/
 
             mediaSession.setActive(false);
 
@@ -245,11 +245,11 @@ final public class PlayerService extends Service {
         }
 
         private void prepareToPlay(Uri uri) {
-            if (!uri.equals(currentUri)) {
+            /*if (!uri.equals(currentUri)) {
                 currentUri = uri;
                 ExtractorMediaSource mediaSource = new ExtractorMediaSource(uri, dataSourceFactory, extractorsFactory, null, null);
                 exoPlayer.prepare(mediaSource);
-            }
+            }*/
         }
 
         private void updateMetadataFromTrack(MusicRepository.Track track) {
@@ -262,7 +262,7 @@ final public class PlayerService extends Service {
         }
     };
 
-    private AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
+    /*private AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int focusChange) {
             switch (focusChange) {
@@ -277,9 +277,9 @@ final public class PlayerService extends Service {
                     break;
             }
         }
-    };
+    };*/
 
-    private final BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
+    /*private final BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             // Disconnecting headphones - stop playback
@@ -287,9 +287,9 @@ final public class PlayerService extends Service {
                 mediaSessionCallback.onPause();
             }
         }
-    };
+    };*/
 
-    private ExoPlayer.EventListener exoPlayerListener = new ExoPlayer.EventListener() {
+    /*private ExoPlayer.EventListener exoPlayerListener = new ExoPlayer.EventListener() {
 
         @Override
         public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
@@ -313,7 +313,7 @@ final public class PlayerService extends Service {
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
         }
-    };
+    };*/
 
     @Nullable
     @Override
